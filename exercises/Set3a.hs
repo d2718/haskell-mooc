@@ -241,7 +241,7 @@ joinToLength len chunks =
 --   sumRights [Left "bad!", Left "missing"]         ==>  0
 
 sumRights :: [Either a Int] -> Int
-sumRights = todo
+sumRights xs = sum (map (either (\_ -> 0) id) xs)
 
 ------------------------------------------------------------------------------
 -- Ex 12: recall the binary function composition operation
@@ -257,7 +257,11 @@ sumRights = todo
 --   multiCompose [(3*), (2^), (+1)] 0 ==> 6
 --   multiCompose [(+1), (2^), (3*)] 0 ==> 2
 
-multiCompose fs = todo
+multiCompose :: [(a -> a)] -> (a -> a)
+multiCompose fs = multiCompose' id fs
+  where
+    multiCompose' bigf [] = bigf
+    multiCompose' bigf fs = multiCompose' (bigf . (head fs)) (tail fs)
 
 ------------------------------------------------------------------------------
 -- Ex 13: let's consider another way to compose multiple functions. Given
@@ -278,7 +282,7 @@ multiCompose fs = todo
 --   multiApp id [head, (!!2), last] "axbxc" ==> ['a','b','c'] i.e. "abc"
 --   multiApp sum [head, (!!2), last] [1,9,2,9,3] ==> 6
 
-multiApp = todo
+multiApp f fs x = f (map ( $ x) fs)
 
 ------------------------------------------------------------------------------
 -- Ex 14: in this exercise you get to implement an interpreter for a
@@ -313,4 +317,14 @@ multiApp = todo
 -- function, the surprise won't work.
 
 interpreter :: [String] -> [String]
-interpreter commands = todo
+interpreter commands = interpreter' 0 0 [] commands
+
+interpreter' :: Int -> Int -> [String] -> [String] -> [String]
+interpreter' _ _ output [] = reverse output
+interpreter' x y output cmds = case (head cmds) of
+  "up"     -> interpreter' x (y + 1) output (tail cmds)
+  "down"   -> interpreter' x (y - 1) output (tail cmds)
+  "left"   -> interpreter' (x - 1) y output (tail cmds)
+  "right"  -> interpreter' (x + 1) y output (tail cmds)
+  "printX" -> interpreter' x y ((show x) : output) (tail cmds)
+  "printY" -> interpreter' x y ((show y) : output) (tail cmds)

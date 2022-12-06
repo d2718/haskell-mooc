@@ -28,7 +28,10 @@ import Data.List
 --  maxBy head   [1,2,3] [4,5]  ==>  [4,5]
 
 maxBy :: (a -> Int) -> a -> a -> a
-maxBy measure a b = todo
+maxBy measure a b =
+  if (measure a) > (measure b)
+  then a
+  else b 
 
 ------------------------------------------------------------------------------
 -- Ex 2: implement the function mapMaybe that takes a function and a
@@ -40,7 +43,8 @@ maxBy measure a b = todo
 --   mapMaybe length (Just "abc") ==> Just 3
 
 mapMaybe :: (a -> b) -> Maybe a -> Maybe b
-mapMaybe f x = todo
+mapMaybe f Nothing  = Nothing
+mapMaybe f (Just x) = Just (f x)
 
 ------------------------------------------------------------------------------
 -- Ex 3: implement the function mapMaybe2 that works like mapMaybe
@@ -54,7 +58,9 @@ mapMaybe f x = todo
 --   mapMaybe2 div (Just 6) Nothing   ==>  Nothing
 
 mapMaybe2 :: (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
-mapMaybe2 f x y = todo
+mapMaybe2 f Nothing  _        = Nothing
+mapMaybe2 f _        Nothing  = Nothing
+mapMaybe2 f (Just x) (Just y) = Just (f x y)
 
 ------------------------------------------------------------------------------
 -- Ex 4: define the functions firstHalf and palindrome so that
@@ -76,9 +82,13 @@ mapMaybe2 f x y = todo
 palindromeHalfs :: [String] -> [String]
 palindromeHalfs xs = map firstHalf (filter palindrome xs)
 
-firstHalf = todo
+firstHalf :: [a] -> [a]
+firstHalf xs = if even (length xs)
+               then take (div (length xs) 2) xs
+               else take (1 + (div (length xs) 2)) xs
 
-palindrome = todo
+palindrome :: String -> Bool
+palindrome xs = xs == (reverse xs)
 
 ------------------------------------------------------------------------------
 -- Ex 5: Implement a function capitalize that takes in a string and
@@ -96,7 +106,12 @@ palindrome = todo
 --   capitalize "goodbye cruel world" ==> "Goodbye Cruel World"
 
 capitalize :: String -> String
-capitalize = todo
+capitalize text = unwords (map capitalizeFirst (words text))
+
+capitalizeFirst :: String -> String
+capitalizeFirst [] = []
+capitalizeFirst (x:rest) = (toUpper x) : rest
+
 
 ------------------------------------------------------------------------------
 -- Ex 6: powers k max should return all the powers of k that are less
@@ -113,8 +128,13 @@ capitalize = todo
 --   * the function takeWhile
 
 powers :: Int -> Int -> [Int]
-powers k max = todo
+powers k max = powers' k max [1]
 
+powers' :: Int -> Int -> [Int] -> [Int]
+powers' k max accum =
+  if head accum > max
+    then reverse (tail accum)
+    else powers' k max ((k * head accum) : accum)
 ------------------------------------------------------------------------------
 -- Ex 7: implement a functional while loop. While should be a function
 -- that takes a checking function, an updating function, and an
@@ -136,7 +156,10 @@ powers k max = todo
 --     ==> Avvt
 
 while :: (a->Bool) -> (a->a) -> a -> a
-while check update value = todo
+while check update value =
+  if check value
+  then while check update (update value)
+  else value
 
 ------------------------------------------------------------------------------
 -- Ex 8: another version of a while loop. This time, the check
@@ -156,7 +179,9 @@ while check update value = todo
 -- Hint! Remember the case-of expression from lecture 2.
 
 whileRight :: (a -> Either b a) -> a -> b
-whileRight check x = todo
+whileRight check x = case check x of
+  Left y -> y
+  Right y -> whileRight check y
 
 -- for the whileRight examples:
 -- step k x doubles x if it's less than k
@@ -180,7 +205,8 @@ bomb x = Right (x-1)
 -- Hint! This is a great use for list comprehensions
 
 joinToLength :: Int -> [String] -> [String]
-joinToLength = todo
+joinToLength len chunks = 
+  filter (\str -> length str == len) [x ++ y | x <- chunks, y <- chunks ]
 
 ------------------------------------------------------------------------------
 -- Ex 10: implement the operator +|+ that returns a list with the first
@@ -194,6 +220,11 @@ joinToLength = todo
 --   [] +|+ [True]        ==> [True]
 --   [] +|+ []            ==> []
 
+(+|+) :: [a] -> [a] -> [a]
+(+|+) [] [] = []
+(+|+) [] ys = [head ys]
+(+|+) xs [] = [head xs]
+(+|+) xs ys = ((head xs) : [(head ys)])
 
 ------------------------------------------------------------------------------
 -- Ex 11: remember the lectureParticipants example from Lecture 2? We

@@ -215,7 +215,13 @@ freqs xs = foldr insertIn Map.empty xs
 --     ==> fromList [("Bob",100),("Mike",50)]
 
 transfer :: String -> String -> Int -> Map.Map String Int -> Map.Map String Int
-transfer from to amount bank = todo
+transfer from to amount bank =
+  case (Map.lookup from bank, Map.lookup to bank) of
+    (Just fromBal, Just toBal)
+      | amount < 0       -> bank
+      | amount > fromBal -> bank
+      | otherwise -> Map.insert from (fromBal - amount) (Map.insert to (toBal + amount) bank)
+    _ -> bank
 
 ------------------------------------------------------------------------------
 -- Ex 11: given an Array and two indices, swap the elements in the indices.
@@ -225,7 +231,12 @@ transfer from to amount bank = todo
 --         ==> array (1,4) [(1,"one"),(2,"three"),(3,"two"),(4,"four")]
 
 swap :: Ix i => i -> i -> Array i a -> Array i a
-swap i j arr = todo
+swap i j arr =
+  let (low, high) = bounds arr
+  in  if i < low || j < low || i > high || j > high
+      then arr
+      else arr // [(j, arr ! i), (i, arr ! j)]
+      where 
 
 ------------------------------------------------------------------------------
 -- Ex 12: given an Array, find the index of the largest element. You
@@ -236,4 +247,12 @@ swap i j arr = todo
 -- Hint: check out Data.Array.indices or Data.Array.assocs
 
 maxIndex :: (Ix i, Ord a) => Array i a -> i
-maxIndex = todo
+maxIndex arr =
+  let greater :: (Ix i, Ord a) => (i, a) -> [(i, a)] -> (i, a)
+      greater (idx, val) [] = (idx, val)
+      greater (idx, val) ((nextidx, nextval):rest) =
+        if val < nextval
+        then greater (nextidx, nextval) rest
+        else greater (idx, val) rest
+      assocPairs = Data.Array.assocs arr
+  in fst (greater (head assocPairs) (tail assocPairs))

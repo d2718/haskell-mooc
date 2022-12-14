@@ -80,14 +80,21 @@ readWords n = do
 --   ["bananas","garlic","pakchoi"]
 
 readUntil :: (String -> Bool) -> IO [String]
-readUntil f = todo
+readUntil f = do
+  word <- getLine
+  if f word
+  then do return []
+  else do next <- readUntil f
+          return (word : next)
 
 
 ------------------------------------------------------------------------------
 -- Ex 6: given n, print the numbers from n to 0, one per line
 
 countdownPrint :: Int -> IO ()
-countdownPrint n = todo
+countdownPrint 0 = do putStrLn "0"
+countdownPrint n = do putStrLn (show n)
+                      countdownPrint (n - 1)
 
 ------------------------------------------------------------------------------
 -- Ex 7: isums n should read n numbers from the user (one per line) and
@@ -102,7 +109,7 @@ countdownPrint n = todo
 --   5. produces 9
 
 isums :: Int -> IO Int
-isums n = todo
+isums = todo
 
 ------------------------------------------------------------------------------
 -- Ex 8: when is a useful function, but its first argument has type

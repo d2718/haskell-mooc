@@ -83,7 +83,7 @@ readUntil :: (String -> Bool) -> IO [String]
 readUntil f = do
   word <- getLine
   if f word
-  then do return []
+  then return []
   else do next <- readUntil f
           return (word : next)
 
@@ -125,7 +125,7 @@ isums n = do
 whenM :: IO Bool -> IO () -> IO ()
 whenM cond op = do
   should <- cond
-  when should (do op)
+  when should op
 
 ------------------------------------------------------------------------------
 -- Ex 9: implement the while loop. while condition operation should

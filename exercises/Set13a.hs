@@ -44,20 +44,30 @@ readNames s =
 --
 -- (NB! There are obviously other corner cases like the inputs " " and
 -- "a b c", but you don't need to worry about those here)
-split :: String -> Maybe (String,String)
-split = todo
+split :: String -> Maybe (String, String)
+split s = subSplit [] s
+  where subSplit [] (' ':rest)    = subSplit [] rest
+        subSplit first (' ':rest) = Just (reverse first, rest)
+        subSplit first (x:rest)   = subSplit (x:first) rest
+        subSplit _ [] = Nothing
 
 -- checkNumber should take a pair of two strings and return them
 -- unchanged if they don't contain numbers. Otherwise Nothing is
 -- returned.
 checkNumber :: (String, String) -> Maybe (String, String)
-checkNumber = todo
+checkNumber (first, last) =
+  if any Data.Char.isDigit first || any Data.Char.isDigit last
+  then Nothing
+  else Just (first, last)
 
 -- checkCapitals should take a pair of two strings and return them
 -- unchanged if both start with a capital letter. Otherwise Nothing is
 -- returned.
 checkCapitals :: (String, String) -> Maybe (String, String)
-checkCapitals (for,sur) = todo
+checkCapitals (first, last) =
+  if Data.Char.isUpper (head first) && Data.Char.isUpper (head last)
+    then Just (first, last)
+    else Nothing
 
 ------------------------------------------------------------------------------
 -- Ex 2: Given a list of players and their scores (as [(String,Int)]),
@@ -84,7 +94,19 @@ checkCapitals (for,sur) = todo
 --     ==> Just "a"
 
 winner :: [(String,Int)] -> String -> String -> Maybe String
-winner scores player1 player2 = todo
+winner scores p1 p2 = seekTwo p1 p2 ?> tupleMax
+  where seekTwo x y =
+          case (getMatch x scores, getMatch y scores) of
+            (Just first, Just second) -> Just (first, second)
+            _                         -> Nothing
+            where getMatch _ [] = Nothing
+                  getMatch target ((name, score):rest) =
+                    if target == name
+                    then Just (name, score)
+                    else getMatch target rest
+        tupleMax ((leftName, leftScore), (rightName, rightScore)) =
+          if rightScore > leftScore then Just rightName else Just leftName
+
 
 ------------------------------------------------------------------------------
 -- Ex 3: given a list of indices and a list of values, return the sum
@@ -102,7 +124,15 @@ winner scores player1 player2 = todo
 --    Nothing
 
 selectSum :: Num a => [a] -> [Int] -> Maybe a
-selectSum xs is = todo
+selectSum xs is = mapM (safeIndex xs) is >>= safeSum
+  where safeSum :: Num a => [a] -> Maybe a
+        safeSum list = Just (sum list)
+
+safeIndex :: [a] -> Int -> Maybe a
+safeIndex []       _ = Nothing
+safeIndex (x:rest) 0 = Just x
+safeIndex (x:rest) n = safeIndex rest (n - 1)
+ 
 
 ------------------------------------------------------------------------------
 -- Ex 4: Here is the Logger monad from the course material. Implement
@@ -136,7 +166,20 @@ instance Applicative Logger where
   (<*>) = ap
 
 countAndLog :: Show a => (a -> Bool) -> [a] -> Logger Int
-countAndLog = todo
+{- countAndLog f [] = Logger [] 0
+countAndLog f (x:rest) =
+  if f x
+  then do msg (show x )
+          accum <- countAndLog f rest
+          return (accum + 1)
+  else do countAndLog f rest -}
+
+countAndLog _ [] = Logger [] 0
+countAndLog f (x:rest) =
+  let Logger showns count = countAndLog f rest
+  in  if f x
+      then Logger (show x:showns) (count + 1)
+      else Logger showns count
 
 ------------------------------------------------------------------------------
 -- Ex 5: You can find the Bank and BankOp code from the course
@@ -153,7 +196,8 @@ exampleBank :: Bank
 exampleBank = (Bank (Map.fromList [("harry",10),("cedric",7),("ginny",1)]))
 
 balance :: String -> BankOp Int
-balance accountName = todo
+balance accountName =
+  BankOp (\ (Bank m) -> (Map.findWithDefault 0 accountName m, Bank m))
 
 ------------------------------------------------------------------------------
 -- Ex 6: Using the operations balance, withdrawOp and depositOp, and
